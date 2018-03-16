@@ -9,3 +9,5 @@
 *.sym
 *.eep
 LUFA/
+*.iml
+.idea
