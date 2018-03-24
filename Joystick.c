@@ -26,8 +26,6 @@ these buttons for our use.
 
 #include "Joystick.h"
 
-extern const uint8_t image_data[0x12c1] PROGMEM;
-
 // Main entry point.
 int main(void) {
 	// We'll start by performing hardware and peripheral setup.
@@ -140,23 +138,11 @@ void HID_Task(void) {
 
 typedef enum {
 	SYNC_CONTROLLER,
-	SYNC_POSITION,
-	STOP_X,
-	STOP_Y,
-	MOVE_X,
-	MOVE_Y,
-	DONE
+	PLAY
 } State_t;
 State_t state = SYNC_CONTROLLER;
 
-#define ECHOES 2
-int echoes = 0;
-USB_JoystickReport_Input_t last_report;
-
 int report_count = 0;
-int xpos = 0;
-int ypos = 0;
-int portsval = 0;
 
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
@@ -169,22 +155,15 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	ReportData->RY = STICK_CENTER;
 	ReportData->HAT = HAT_CENTER;
 
-	// Repeat ECHOES times the last report
-	if (echoes > 0)
-	{
-		memcpy(ReportData, &last_report, sizeof(USB_JoystickReport_Input_t));
-		echoes--;
-		return;
-	}
-
 	// States and moves management
 	switch (state)
 	{
 		case SYNC_CONTROLLER:
+		    PORTD |= (1<<6); // LED on while syncing
 			if (report_count > 100)
 			{
 				report_count = 0;
-				state = SYNC_POSITION;
+				state = PLAY;
 			}
 			else if (report_count == 25 || report_count == 50)
 			{
@@ -196,74 +175,15 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 			}
 			report_count++;
 			break;
-		case SYNC_POSITION:
-			if (report_count == 250)
-			{
-				report_count = 0;
-				xpos = 0;
-				ypos = 0;
-				state = STOP_X;
-			}
-			else
-			{
-				// Moving faster with LX/LY
-				ReportData->LX = STICK_MIN;
-				ReportData->LY = STICK_MIN;
-			}
-			if (report_count == 75 || report_count == 150)
-			{
-				// Clear the screen
-				ReportData->Button |= SWITCH_MINUS;
-			}
-			report_count++;
-			break;
-		case STOP_X:
-			state = MOVE_X;
-			break;
-		case STOP_Y:
-			if (ypos < 120 - 1)
-				state = MOVE_Y;
-			else
-				state = DONE;
-			break;
-		case MOVE_X:
-			if (ypos % 2)
-			{
-				ReportData->HAT = HAT_LEFT;
-				xpos--;
-			}
-			else
-			{
-				ReportData->HAT = HAT_RIGHT;
-				xpos++;
-			}
-			if (xpos > 0 && xpos < 320 - 1)
-				state = STOP_X;
-			else
-				state = STOP_Y;
-			break;
-		case MOVE_Y:
-			ReportData->HAT = HAT_BOTTOM;
-			ypos++;
-			state = STOP_X;
-			break;
-		case DONE:
-			#ifdef ALERT_WHEN_DONE
-			portsval = ~portsval;
-			PORTD = portsval; //flash LED(s) and sound buzzer if attached
-			PORTB = portsval;
-			_delay_ms(250);
-			#endif
+		case PLAY:
+		    if (report_count == 0) {
+		        PORTD |= (1<<6); // set PD6
+		    } else {
+		        PORTD &= ~(1<<6); // clear PD6
+		    }
+            report_count++;
+            report_count = report_count % 100;
 			return;
 	}
-
-	// Inking
-	if (state != SYNC_CONTROLLER && state != SYNC_POSITION)
-		if (pgm_read_byte(&(image_data[(xpos / 8) + (ypos * 40)])) & 1 << (xpos % 8))
-			ReportData->Button |= SWITCH_A;
-
-	// Prepare to echo this report
-	memcpy(&last_report, ReportData, sizeof(USB_JoystickReport_Input_t));
-	echoes = ECHOES;
 
 }
