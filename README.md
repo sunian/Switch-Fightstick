@@ -58,4 +58,14 @@ Analog pins
 Extra pins
 ```
 TILT    A8  B0
+PLUS    A9  B1
+MINUS   A10 B2
+HOME    A11 B3
+```
+D Pad
+```
+UP      14  D3
+DOWN    15  D2
+LEFT    16  D1
+RIGHT   17  D0
 ```

@@ -52,16 +52,10 @@ void SetupHardware(void) {
 	clock_prescale_set(clock_div_1);
 	// We can then initialize our hardware and peripherals, including the USB stack.
 
-	#ifdef ALERT_WHEN_DONE
-	// Both PORTD and PORTB will be used for the optional LED flashing and buzzer.
-	#warning LED and Buzzer functionality enabled. All pins on both PORTB and \
-PORTD will toggle when printing is done.
-	DDRD  = 0xFF; //Teensy uses PORTD
-	PORTD =  0x0;
-                  //We'll just flash all pins on both ports since the UNO R3
-	DDRB  = 0xFF; //uses PORTB. Micro can use either or, but both give us 2 LEDs
-	PORTB =  0x0; //The ATmega328P on the UNO will be resetting, so unplug it?
-	#endif
+
+	DDRD = 0x0; // read from pin D
+	DDRD |= (1<<6); // output to LED on D6
+
 	DDRC = 0x0; // read from pin C
 	DDRF = 0x0; // read from pin F
 	DDRB = 0x0; // read from pin B
@@ -183,6 +177,7 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 			report_count++;
 			break;
 		case PLAY:
+		    // flash the LED once every 100 packets
 		    if (report_count == 0) {
 		        PORTD |= (1<<6); // set PD6
 		    } else {
@@ -190,8 +185,34 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 		    }
             report_count++;
             report_count = report_count % 100;
-            ReportData->Button = PINC;
 
+            // assign first 8 buttons from pin C
+            ReportData->Button = PINC;
+            // rest of the buttons from pin B
+            if (PINB & (1<<1)) {
+                ReportData->Button |= SWITCH_PLUS;
+            }
+            if (PINB & (1<<2)) {
+                ReportData->Button |= SWITCH_MINUS;
+            }
+            if (PINB & (1<<3)) {
+                ReportData->Button |= SWITCH_HOME;
+            }
+
+            if (PIND & (1<<3)) {
+                ReportData->HAT = HAT_TOP;
+            }
+            if (PIND & (1<<2)) {
+                ReportData->HAT = HAT_BOTTOM;
+            }
+            if (PIND & (1<<1)) {
+                ReportData->HAT = HAT_LEFT;
+            }
+            if (PIND & (1<<0)) {
+                ReportData->HAT = HAT_RIGHT;
+            }
+
+            // analog sticks from pin F
             int stickMax = STICK_MAX;
             int stickMin = STICK_MIN;
             if (PINB & (1<<0)) {
@@ -219,10 +240,10 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
                 ReportData->RY = STICK_MAX;
             }
             if (PINF & (1<<1)) {
-                ReportData->RX = STICK_MIN;
+                ReportData->RX = STICK_MAX;
             }
             if (PINF & (1<<0)) {
-                ReportData->RX = STICK_MAX;
+                ReportData->RX = STICK_MIN;
             }
 
 			return;

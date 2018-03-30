@@ -9,17 +9,23 @@
 
 #define KEY_A      's'
 #define KEY_B      'd'
-#define KEY_GRAB   'w'
-#define KEY_SHIELD 'a'
+#define KEY_R      'w'
+#define KEY_ZL     'a'
 #define KEY_TILT   ' '
-#define KEY_START  0x13
+#define KEY_PLUS    0x13 // enter
 #define KEY_UP_TILT      'p'
 #define KEY_UP_TILT_ATK  'r'
 
 #define KEY_X      'o'
 #define KEY_Y      'u'
-#define KEY_L      'q'
-#define KEY_ZR     'z'
+#define KEY_L      'z'
+#define KEY_ZR     'q'
+#define KEY_MINUS  '\\'
+#define OEM_KEY_HOME    41 // backspace
+#define OEM_KEY_UP      82 // UP
+#define OEM_KEY_DOWN    81 // DOWN
+#define OEM_KEY_LEFT    80 // LEFT
+#define OEM_KEY_RIGHT   79 // RIGHT
 
 #define PIN_UP      A0
 #define PIN_DOWN    A1
@@ -51,16 +57,23 @@ bool state_RIGHTC = false;
 
 bool state_A      = false;
 bool state_B      = false;
-bool state_GRAB   = false;
-bool state_SHIELD = false;
+bool state_ZL     = false;
+bool state_R      = false;
 bool state_TILT   = false;
-bool state_START  = false;
+bool state_PLUS  = false;
 bool state_UP_TILT      = false;
 bool state_UP_TILT_ATK  = false;
-bool state_X   = false;
-bool state_Y = false;
-bool state_L   = false;
-bool state_ZR  = false;
+bool state_X    = false;
+bool state_Y    = false;
+bool state_L    = false;
+bool state_ZR   = false;
+bool state_MINUS   = false;
+bool state_HOME   = false;
+
+bool state_UPD    = false;
+bool state_DOWND  = false;
+bool state_LEFTD  = false;
+bool state_RIGHTD = false;
 
 int ledState = HIGH;
 
@@ -82,7 +95,8 @@ void modChanged() {
 }
 
 void updateKey(bool pressed) {
-  if (keyboard.getOemKey() == 0) return;
+  int oemKey = keyboard.getOemKey();
+  if (oemKey == 0) return;
   int key = keyboard.getKey();
   if (key == KEY_UP) state_UP = pressed;
   else if (key == KEY_DOWN   ) state_DOWN = pressed;
@@ -93,73 +107,27 @@ void updateKey(bool pressed) {
   else if (key == KEY_LEFTC  ) state_LEFTC  = pressed;
   else if (key == KEY_A      ) state_A      = pressed;
   else if (key == KEY_B      ) state_B      = pressed;
-  else if (key == KEY_GRAB   ) state_GRAB   = pressed;
-  else if (key == KEY_SHIELD ) state_SHIELD = pressed;
+  else if (key == KEY_ZL     ) state_ZL     = pressed;
+  else if (key == KEY_R      ) state_R      = pressed;
   else if (key == KEY_TILT   ) state_TILT   = pressed;
-  else if (key == KEY_START  ) state_START  = pressed;
+  else if (key == KEY_PLUS   ) state_PLUS   = pressed;
   else if (key == KEY_UP_TILT      ) state_UP_TILT      = pressed;
   else if (key == KEY_UP_TILT_ATK  ) state_UP_TILT_ATK  = pressed;
   else if (key == KEY_X      ) state_X      = pressed;
   else if (key == KEY_Y      ) state_Y      = pressed;
   else if (key == KEY_L      ) state_L      = pressed;
   else if (key == KEY_ZR     ) state_ZR     = pressed;
+  else if (key == KEY_MINUS  ) state_MINUS  = pressed;
+  else if (oemKey == OEM_KEY_HOME   ) state_HOME   = pressed;
+  else if (oemKey == OEM_KEY_UP     ) state_UPD   = pressed;
+  else if (oemKey == OEM_KEY_DOWN   ) state_DOWND   = pressed;
+  else if (oemKey == OEM_KEY_LEFT   ) state_LEFTD   = pressed;
+  else if (oemKey == OEM_KEY_RIGHT  ) state_RIGHTD   = pressed;
 }
 
-/*
-void printKey(bool pressed) {
-  int oemkey = keyboard.getOemKey();
-  if (oemkey == 0) return;
-
-  if (pressed) {
-    Serial.print("Pressed:  ");
-  } else {
-    Serial.print("Released: ");
-  }
-
-  // getOemKey() returns the OEM-code associated with the key
-  Serial.print(" key:");
-  Serial.print(oemkey);
-
-  // getModifiers() returns a bits field with the modifiers-keys
-  int mod = keyboard.getModifiers();
-
-  Serial.print(" => ");
-
-  if (mod & LeftCtrl)
-    Serial.print("L-Ctrl ");
-  if (mod & KEY_RIGHTC)
-    Serial.print("L-Shift ");
-  if (mod & Alt)
-    Serial.print("Alt ");
-  if (mod & LeftCmd)
-    Serial.print("L-Cmd ");
-  if (mod & RightCtrl)
-    Serial.print("R-Ctrl ");
-  if (mod & RightShift)
-    Serial.print("R-Shift ");
-  if (mod & AltGr)
-    Serial.print("AltGr ");
-  if (mod & RightCmd)
-    Serial.print("R-Cmd ");
-
-  // getKey() returns the ASCII translation of OEM key
-  // combined with modifiers.
-  int key = keyboard.getKey();
-  if (key == KEY_TILT) {
-    Serial.print("SPACE");
-  } else if (key == KEY_START) {
-    Serial.print("ENTER");
-  } else {
-    Serial.write(key);
-  }
-  Serial.println();
-}
-*/
 
 void setup()
 {
-  //Serial.begin(115200);
-  //Serial.println("Program started");
 
   pinMode(8, OUTPUT);
   pinMode(9, OUTPUT);
@@ -183,6 +151,11 @@ void setup()
   pinMode(A9, OUTPUT);
   pinMode(A10, OUTPUT);
   pinMode(A11, OUTPUT);
+
+  pinMode(14, OUTPUT);
+  pinMode(15, OUTPUT);
+  pinMode(16, OUTPUT);
+  pinMode(17, OUTPUT);
 
   pinMode(13, OUTPUT);
 
@@ -257,13 +230,20 @@ void loop()
   if (state_A || state_UP_TILT_ATK) digitalWrite(4, HIGH); else digitalWrite(4, LOW);
   if (state_X ) digitalWrite(5, HIGH); else digitalWrite(5, LOW);
   if (state_L ) digitalWrite(6, HIGH); else digitalWrite(6, LOW);
-  if (state_GRAB ) digitalWrite(7, HIGH); else digitalWrite(7, LOW);
-  if (state_SHIELD ) digitalWrite(8, HIGH); else digitalWrite(8, LOW);
+  if (state_R ) digitalWrite(7, HIGH); else digitalWrite(7, LOW);
+  if (state_ZL ) digitalWrite(8, HIGH); else digitalWrite(8, LOW);
   if (state_ZR ) digitalWrite(9, HIGH); else digitalWrite(9, LOW);
   
   
   if (state_TILT || state_UP_TILT || state_UP_TILT_ATK) digitalWrite(A8, HIGH); else digitalWrite(A8, LOW);
-  if (state_START ) digitalWrite(26, HIGH); else digitalWrite(26, LOW);
+  if (state_PLUS ) digitalWrite(A9, HIGH); else digitalWrite(A9, LOW);
+  if (state_MINUS ) digitalWrite(A10, HIGH); else digitalWrite(A10, LOW);
+  if (state_HOME ) digitalWrite(A11, HIGH); else digitalWrite(A11, LOW);
+
+  if (state_UPD ) digitalWrite(14, HIGH); else digitalWrite(14, LOW);
+  if (state_DOWND ) digitalWrite(15, HIGH); else digitalWrite(15, LOW);
+  if (state_LEFTD ) digitalWrite(16, HIGH); else digitalWrite(16, LOW);
+  if (state_RIGHTD ) digitalWrite(17, HIGH); else digitalWrite(17, LOW);
 
   // Process USB tasks
   usb.Task();
