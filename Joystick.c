@@ -62,6 +62,10 @@ PORTD will toggle when printing is done.
 	DDRB  = 0xFF; //uses PORTB. Micro can use either or, but both give us 2 LEDs
 	PORTB =  0x0; //The ATmega328P on the UNO will be resetting, so unplug it?
 	#endif
+	DDRC = 0x0; // read from pin C
+	DDRF = 0x0; // read from pin F
+	DDRB = 0x0; // read from pin B
+	DDRE |= 0x01; // connected to RESET pin on Arduino
 	// The USB stack should be initialized last.
 	USB_Init();
 }
@@ -168,10 +172,13 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 			else if (report_count == 25 || report_count == 50)
 			{
 				ReportData->Button |= SWITCH_L | SWITCH_R;
+				PORTE &= ~(0x01);
 			}
 			else if (report_count == 75 || report_count == 100)
 			{
 				ReportData->Button |= SWITCH_A;
+				PORTE |= 0x01;
+
 			}
 			report_count++;
 			break;
@@ -183,6 +190,41 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 		    }
             report_count++;
             report_count = report_count % 100;
+            ReportData->Button = PINC;
+
+            int stickMax = STICK_MAX;
+            int stickMin = STICK_MIN;
+            if (PINB & (1<<0)) {
+                // only for left analog stick
+                stickMax = STICK_CENTER + 64;
+                stickMin = STICK_CENTER - 64;
+            }
+
+            if (PINF & (1<<7)) {
+                ReportData->LY = stickMin;
+            }
+            if (PINF & (1<<6)) {
+                ReportData->LY = stickMax;
+            }
+            if (PINF & (1<<5)) {
+                ReportData->LX = stickMin;
+            }
+            if (PINF & (1<<4)) {
+                ReportData->LX = stickMax;
+            }
+            if (PINF & (1<<3)) {
+                ReportData->RY = STICK_MIN;
+            }
+            if (PINF & (1<<2)) {
+                ReportData->RY = STICK_MAX;
+            }
+            if (PINF & (1<<1)) {
+                ReportData->RX = STICK_MIN;
+            }
+            if (PINF & (1<<0)) {
+                ReportData->RX = STICK_MAX;
+            }
+
 			return;
 	}
 
