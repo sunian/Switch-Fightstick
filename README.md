@@ -69,3 +69,4 @@ DOWN    15  D2
 LEFT    16  D1
 RIGHT   17  D0
 ```
+Also, wired pin E0 on teensy to the RESET pin on Arduino so that the teensy can reset the arduino when needed
