@@ -59,7 +59,7 @@ void SetupHardware(void) {
 	DDRC = 0x0; // read from pin C
 	DDRF = 0x0; // read from pin F
 	DDRB = 0x0; // read from pin B
-	DDRE |= 0x01; // connected to RESET pin on Arduino
+	DDRE |= (1<<6); // connected to RESET pin on Arduino
 	// The USB stack should be initialized last.
 	USB_Init();
 }
@@ -166,12 +166,12 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 			else if (report_count == 25 || report_count == 50)
 			{
 				ReportData->Button |= SWITCH_L | SWITCH_R;
-				PORTE &= ~(0x01);
+				PORTE &= ~(1<<6);
 			}
 			else if (report_count == 75 || report_count == 100)
 			{
 				ReportData->Button |= SWITCH_A;
-				PORTE |= 0x01;
+				PORTE |= (1<<6);
 
 			}
 			report_count++;
