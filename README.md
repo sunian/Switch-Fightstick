@@ -31,7 +31,7 @@ If you ever need to use your Arduino Micro with Arduino IDE again, the process i
 
 The Arduino Leonardo is theoretically compatible, but has not been tested. It also has the ATmega32u4, and is layed out somewhat similar to the Micro.
 
-#### Pin Mapping
+#### (Outdated) Pin Mapping
 PINC on Teensy  
 Pins 2 - 9 on Arduino
 ```
@@ -70,3 +70,43 @@ LEFT    16  D1
 RIGHT   17  D0
 ```
 Also, wired pin E6 on teensy to the RESET pin on Arduino so that the teensy can reset the arduino when needed
+
+#### New Pin Mapping
+PINC on Teensy  
+Pins 2 - 9 on Arduino
+```
+	SWITCH_Y       = 0x01, A8
+	SWITCH_B       = 0x02, A9
+	SWITCH_A       = 0x04, A10
+	SWITCH_X       = 0x08, A11
+	SWITCH_L       = 0x10, A7
+	SWITCH_R       = 0x20, A6
+	SWITCH_ZL      = 0x40, A1
+	SWITCH_ZR      = 0x80, A0
+```
+Analog pins
+```
+#define PIN_UP      6   F7
+#define PIN_DOWN    7   F6
+#define PIN_LEFT    17  F5
+#define PIN_RIGHT   16  F4
+#define PIN_UPC     15  F3
+#define PIN_DOWNC   14  F2
+#define PIN_LEFTC   8   F1
+#define PIN_RIGHTC  9   F0
+```
+Extra pins
+```
+TILT    2  B0
+PLUS    3  B1
+MINUS   4  B2
+HOME    5  B3
+```
+D Pad
+```
+UP      A5  D3
+DOWN    A4  D2
+LEFT    A3  D1
+RIGHT   A2  D0
+```
+Also, wired pin E0 on teensy to the RESET pin on Arduino so that the teensy can reset the arduino when needed

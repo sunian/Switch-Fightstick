@@ -27,14 +27,14 @@
 #define OEM_KEY_LEFT    80 // LEFT
 #define OEM_KEY_RIGHT   79 // RIGHT
 
-#define PIN_UP      A0
-#define PIN_DOWN    A1
-#define PIN_LEFT    A2
-#define PIN_RIGHT   A3
-#define PIN_UPC     A4
-#define PIN_DOWNC   A5
-#define PIN_LEFTC   A6
-#define PIN_RIGHTC  A7
+#define PIN_UP      6
+#define PIN_DOWN    7
+#define PIN_LEFT    17
+#define PIN_RIGHT   16
+#define PIN_UPC     15
+#define PIN_DOWNC   14
+#define PIN_LEFTC   8
+#define PIN_RIGHTC  9
 
 // Require keyboard control library
 #include <KeyboardController.h>
@@ -138,14 +138,14 @@ void setup()
   pinMode(6, OUTPUT);
   pinMode(7, OUTPUT);
   
-  pinMode(PIN_UP, OUTPUT);
-  pinMode(PIN_DOWN, OUTPUT);
-  pinMode(PIN_LEFT, OUTPUT);
-  pinMode(PIN_RIGHT, OUTPUT);
-  pinMode(PIN_UPC, OUTPUT);
-  pinMode(PIN_DOWNC, OUTPUT);
-  pinMode(PIN_LEFTC, OUTPUT);
-  pinMode(PIN_RIGHTC, OUTPUT);
+  pinMode(A0, OUTPUT);
+  pinMode(A1, OUTPUT);
+  pinMode(A2, OUTPUT);
+  pinMode(A3, OUTPUT);
+  pinMode(A4, OUTPUT);
+  pinMode(A5, OUTPUT);
+  pinMode(A6, OUTPUT);
+  pinMode(A7, OUTPUT);
 
   pinMode(A8, OUTPUT);
   pinMode(A9, OUTPUT);
@@ -225,25 +225,25 @@ void loop()
     if (state_RIGHTC) digitalWrite(PIN_RIGHTC, HIGH); else digitalWrite(PIN_RIGHTC, LOW);
   }
 
-  if (state_Y ) digitalWrite(2, HIGH); else digitalWrite(2, LOW);
-  if (state_B   ) digitalWrite(3, HIGH); else digitalWrite(3, LOW);
-  if (state_A || state_UP_TILT_ATK) digitalWrite(4, HIGH); else digitalWrite(4, LOW);
-  if (state_X ) digitalWrite(5, HIGH); else digitalWrite(5, LOW);
-  if (state_L ) digitalWrite(6, HIGH); else digitalWrite(6, LOW);
-  if (state_R ) digitalWrite(7, HIGH); else digitalWrite(7, LOW);
-  if (state_ZL ) digitalWrite(8, HIGH); else digitalWrite(8, LOW);
-  if (state_ZR ) digitalWrite(9, HIGH); else digitalWrite(9, LOW);
+  if (state_Y ) digitalWrite(A8, HIGH); else digitalWrite(A8, LOW);
+  if (state_B   ) digitalWrite(A9, HIGH); else digitalWrite(A9, LOW);
+  if (state_A || state_UP_TILT_ATK) digitalWrite(A10, HIGH); else digitalWrite(A10, LOW);
+  if (state_X ) digitalWrite(A11, HIGH); else digitalWrite(A11, LOW);
+  if (state_L ) digitalWrite(A7, HIGH); else digitalWrite(A7, LOW);
+  if (state_R ) digitalWrite(A6, HIGH); else digitalWrite(A6, LOW);
+  if (state_ZL ) digitalWrite(A1, HIGH); else digitalWrite(A1, LOW);
+  if (state_ZR ) digitalWrite(A0, HIGH); else digitalWrite(A0, LOW);
   
   
-  if (state_TILT || state_UP_TILT || state_UP_TILT_ATK) digitalWrite(A8, HIGH); else digitalWrite(A8, LOW);
-  if (state_PLUS ) digitalWrite(A9, HIGH); else digitalWrite(A9, LOW);
-  if (state_MINUS ) digitalWrite(A10, HIGH); else digitalWrite(A10, LOW);
-  if (state_HOME ) digitalWrite(A11, HIGH); else digitalWrite(A11, LOW);
+  if (state_TILT || state_UP_TILT || state_UP_TILT_ATK) digitalWrite(2, HIGH); else digitalWrite(2, LOW);
+  if (state_PLUS ) digitalWrite(3, HIGH); else digitalWrite(3, LOW);
+  if (state_MINUS ) digitalWrite(4, HIGH); else digitalWrite(4, LOW);
+  if (state_HOME ) digitalWrite(5, HIGH); else digitalWrite(5, LOW);
 
-  if (state_UPD ) digitalWrite(14, HIGH); else digitalWrite(14, LOW);
-  if (state_DOWND ) digitalWrite(15, HIGH); else digitalWrite(15, LOW);
-  if (state_LEFTD ) digitalWrite(16, HIGH); else digitalWrite(16, LOW);
-  if (state_RIGHTD ) digitalWrite(17, HIGH); else digitalWrite(17, LOW);
+  if (state_UPD ) digitalWrite(A5, HIGH); else digitalWrite(A5, LOW);
+  if (state_DOWND ) digitalWrite(A4, HIGH); else digitalWrite(A4, LOW);
+  if (state_LEFTD ) digitalWrite(A3, HIGH); else digitalWrite(A3, LOW);
+  if (state_RIGHTD ) digitalWrite(A2, HIGH); else digitalWrite(A2, LOW);
 
   // Process USB tasks
   usb.Task();
