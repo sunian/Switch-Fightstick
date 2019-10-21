@@ -141,6 +141,9 @@ typedef enum {
 State_t state = SYNC_CONTROLLER;
 
 int report_count = 0;
+int inUpB = 0;
+int upBHorizontalDirection = 0; // -1 for left, 1 for right
+int hasGoneDown = 0; // have we up-b downwards?
 
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
@@ -213,36 +216,92 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
             }
 
             // analog sticks from pin F
-            int stickMax = STICK_MAX;
-            int stickMin = STICK_MIN;
-            if (PINB & (1<<0)) {
-                // only for left analog stick
-                stickMax = STICK_CENTER + 64;
-                stickMin = STICK_CENTER - 64;
+
+            int tiltLeftStick = PINB & (1<<0);
+            int holdingUp = PINF & (1<<7);
+            int holdingDown = PINF & (1<<6);
+            int holdingLeft = PINF & (1<<5);
+            int holdingRight = PINF & (1<<4);
+            int holdingB = PINC & SWITCH_B;
+            int diagonal = (PINF & 0xC0) && (PINF & 0x30);
+            if (holdingB) {
+                if (holdingUp || inUpB) {
+                    inUpB++;
+                }
+                if (inUpB) {
+                    if (holdingDown) {
+                        hasGoneDown = 1;
+                    }
+                    if (upBHorizontalDirection == 0) {
+                        if (holdingLeft) {
+                            upBHorizontalDirection = -1;
+                        } else if (holdingRight) {
+                            upBHorizontalDirection = 1;
+                        }
+                    }
+                }
+            } else {
+                inUpB = 0;
+                upBHorizontalDirection = 0; // reset
+                hasGoneDown = 0;
             }
 
-            if (PINF & (1<<7)) {
-                ReportData->LY = stickMin;
+            if (PINC & SWITCH_ZL){ // shielding
+                if (holdingUp) {
+                    ReportData->LY = tiltLeftStick ? STICK_CENTER - TILT_SHIELD : STICK_MIN;
+                } else if (holdingDown) {
+                    ReportData->LY = tiltLeftStick ? STICK_CENTER + TILT_SHIELD : STICK_MAX;
+                }
+                if (holdingLeft) {
+                    ReportData->LX = tiltLeftStick ? STICK_CENTER - TILT_SHIELD : STICK_MIN;
+                } else if (holdingRight) {
+                    ReportData->LX = tiltLeftStick ? STICK_CENTER + TILT_SHIELD : STICK_MAX;
+                }
+            } else if (inUpB && tiltLeftStick && diagonal) { // tilting Up-B in a diagonal direction
+                int vertical = 0;
+                int horizontal = TILT_SHALLOW;
+                if (hasGoneDown) {
+                    int changingDirection = (upBHorizontalDirection < 0 && holdingRight) ||
+                                            (upBHorizontalDirection > 0 && holdingLeft);
+                    if (!changingDirection) {
+                        vertical = TILT_SHALLOW;
+                        horizontal = 0;
+                    }
+                }
+                if (holdingUp) {
+                    ReportData->LY =  STICK_MIN + vertical;
+                } else if (holdingDown) {
+                    ReportData->LY =  STICK_MAX - vertical;
+                }
+                if (holdingLeft) {
+                    ReportData->LX =  STICK_MIN + horizontal;
+                } else if (holdingRight) {
+                    ReportData->LX =  STICK_MAX - horizontal;
+                }
+            } else if ((inUpB > 50) && tiltLeftStick && holdingUp) { // tilting Up-B straight up
+                    ReportData->LY =  STICK_CENTER + 64; // press 50% down
+            } else {
+                if (holdingUp) {
+                    ReportData->LY = tiltLeftStick ? STICK_CENTER - 64 : STICK_MIN;
+                } else if (holdingDown) {
+                    ReportData->LY = tiltLeftStick ? STICK_CENTER + 64 : STICK_MAX;
+                }
+                if (holdingLeft) {
+                    ReportData->LX = tiltLeftStick ? STICK_CENTER - TILT_WALK : STICK_MIN;
+                } else if (holdingRight) {
+                    ReportData->LX = tiltLeftStick ? STICK_CENTER + TILT_WALK : STICK_MAX;
+                }
             }
-            if (PINF & (1<<6)) {
-                ReportData->LY = stickMax;
-            }
-            if (PINF & (1<<5)) {
-                ReportData->LX = stickMin;
-            }
-            if (PINF & (1<<4)) {
-                ReportData->LX = stickMax;
-            }
+
+            // C - stick
             if (PINF & (1<<3)) {
                 ReportData->RY = STICK_MIN;
-            }
-            if (PINF & (1<<2)) {
+            } else if (PINF & (1<<2)) {
                 ReportData->RY = STICK_MAX;
             }
             if (PINF & (1<<1)) {
                 ReportData->RX = STICK_MAX;
-            }
-            if (PINF & (1<<0)) {
+            } else if (PINF & (1<<0)) {
                 ReportData->RX = STICK_MIN;
             }
 

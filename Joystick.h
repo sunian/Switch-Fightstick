@@ -84,6 +84,9 @@ typedef enum {
 #define STICK_MIN      0
 #define STICK_CENTER 128
 #define STICK_MAX    255
+#define TILT_WALK    100
+#define TILT_SHIELD  80
+#define TILT_SHALLOW 70
 
 // Joystick HID report structure. We have an input and an output.
 typedef struct {
