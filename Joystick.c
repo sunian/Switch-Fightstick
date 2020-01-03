@@ -142,6 +142,7 @@ State_t state = SYNC_CONTROLLER;
 
 int report_count = 0;
 int inUpB = 0;
+int acBair = 0;
 
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
@@ -178,7 +179,7 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 			report_count++;
 			break;
 		case PLAY:
-		    // flash the LED once every 100 packets
+		    // flash the LED once every 100 packets (avg 125 packets per second)
 		    if (report_count == 0) {
 		        PORTD |= (1<<6); // set PD6
 		    } else {
@@ -220,6 +221,7 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
             int holdingDown = PINF & (1<<6);
             int holdingLeft = PINF & (1<<5);
             int holdingRight = PINF & (1<<4);
+            int holdingA = PINC & SWITCH_A;
             int holdingB = PINC & SWITCH_B;
             int diagonal = (PINF & 0xC0) && (PINF & 0x30);
             if (holdingB) {
@@ -279,6 +281,28 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
                 ReportData->RX = STICK_MAX;
             } else if (PINF & (1<<0)) {
                 ReportData->RX = STICK_MIN;
+            }
+
+            if (tiltLeftStick && holdingUp && holdingA && (holdingLeft || holdingRight)){
+                ReportData->LY = 0;
+                if (acBair < 4) {
+                    ReportData->Button |= SWITCH_X;
+                    // input LX in the opposite direction
+                    if (holdingLeft) {
+                        ReportData->LX = STICK_CENTER + TILT_WALK;
+                    } else if (holdingRight) {
+                        ReportData->LX = STICK_CENTER - TILT_WALK;
+                    }
+                } else {
+                    if (holdingLeft) {
+                        ReportData->LX = STICK_MIN;
+                    } else if (holdingRight) {
+                        ReportData->LX = STICK_MAX;
+                    }
+                }
+                acBair++;
+            } else {
+                acBair = 0;
             }
 
 			return;
