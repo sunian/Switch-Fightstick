@@ -142,8 +142,6 @@ State_t state = SYNC_CONTROLLER;
 
 int report_count = 0;
 int inUpB = 0;
-int upBHorizontalDirection = 0; // -1 for left, 1 for right
-int hasGoneDown = 0; // have we up-b downwards?
 
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
@@ -228,22 +226,8 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
                 if (holdingUp || inUpB) {
                     inUpB++;
                 }
-                if (inUpB) {
-                    if (holdingDown) {
-                        hasGoneDown = 1;
-                    }
-                    if (upBHorizontalDirection == 0) {
-                        if (holdingLeft) {
-                            upBHorizontalDirection = -1;
-                        } else if (holdingRight) {
-                            upBHorizontalDirection = 1;
-                        }
-                    }
-                }
             } else {
                 inUpB = 0;
-                upBHorizontalDirection = 0; // reset
-                hasGoneDown = 0;
             }
 
             if (PINC & SWITCH_ZL){ // shielding
@@ -260,14 +244,6 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
             } else if (inUpB && tiltLeftStick && diagonal) { // tilting Up-B in a diagonal direction
                 int vertical = 0;
                 int horizontal = TILT_SHALLOW;
-                if (hasGoneDown) {
-                    int changingDirection = (upBHorizontalDirection < 0 && holdingRight) ||
-                                            (upBHorizontalDirection > 0 && holdingLeft);
-                    if (!changingDirection) {
-                        vertical = TILT_SHALLOW;
-                        horizontal = 0;
-                    }
-                }
                 if (holdingUp) {
                     ReportData->LY =  STICK_MIN + vertical;
                 } else if (holdingDown) {
