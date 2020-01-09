@@ -305,6 +305,12 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
                 acBair = 0;
             }
 
+            if (tiltLeftStick && (PINC & SWITCH_ZR)) {
+                // if you tilt + ZR, capture screenshot instead of pressing ZR
+                ReportData->Button |= SWITCH_CAPTURE;
+                ReportData->Button &= ~SWITCH_ZR;
+            }
+
 			return;
 	}
 
