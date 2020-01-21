@@ -143,6 +143,7 @@ State_t state = SYNC_CONTROLLER;
 int report_count = 0;
 int inUpB = 0;
 int acBair = 0;
+int holdingB = 0;
 
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
@@ -222,7 +223,11 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
             int holdingLeft = PINF & (1<<5);
             int holdingRight = PINF & (1<<4);
             int holdingA = PINC & SWITCH_A;
-            int holdingB = PINC & SWITCH_B;
+            if (PINC & SWITCH_B) {
+                holdingB++;
+            } else {
+                holdingB = 0;
+            }
             int diagonal = (PINF & 0xC0) && (PINF & 0x30);
             if (holdingB) {
                 if (holdingUp || inUpB) {
@@ -303,6 +308,13 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
                 acBair++;
             } else {
                 acBair = 0;
+            }
+
+            if (holdingB) {
+                if (holdingB > 32 && (PINC & SWITCH_ZR)) {
+                    ReportData->Button |= SWITCH_X | SWITCH_R;
+                }
+                ReportData->Button &= ~SWITCH_ZR;
             }
 
             if (tiltLeftStick && (PINC & SWITCH_ZR)) {
