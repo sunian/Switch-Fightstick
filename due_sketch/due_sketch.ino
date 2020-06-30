@@ -225,28 +225,10 @@ void loop()
     if (state_RIGHTC) digitalWrite(PIN_RIGHTC, HIGH); else digitalWrite(PIN_RIGHTC, LOW);
   }
 
-  if (state_Y) {
-    digitalWrite(A11, LOW);
-    digitalWrite(A8, HIGH);
-  } else if (state_X) {
-    digitalWrite(A8, LOW);
-    digitalWrite(A11, HIGH);
-  } else {
-    digitalWrite(A11, LOW);
-    digitalWrite(A8, LOW);
-  }
-
-  if (state_B) {
-    digitalWrite(A10, LOW);
-    digitalWrite(A9, HIGH);
-  } else if (state_A || state_UP_TILT_ATK) {
-    digitalWrite(A9, LOW);
-    digitalWrite(A10, HIGH);
-  } else {
-    digitalWrite(A10, LOW);
-    digitalWrite(A9, LOW);
-  }
-  
+  if (state_Y ) digitalWrite(A8, HIGH); else digitalWrite(A8, LOW);
+  if (state_B   ) digitalWrite(A9, HIGH); else digitalWrite(A9, LOW);
+  if (state_A || state_UP_TILT_ATK) digitalWrite(A10, HIGH); else digitalWrite(A10, LOW);
+  if (state_X ) digitalWrite(A11, HIGH); else digitalWrite(A11, LOW);
   if (state_L ) digitalWrite(A7, HIGH); else digitalWrite(A7, LOW);
   if (state_R ) digitalWrite(A6, HIGH); else digitalWrite(A6, LOW);
   if (state_ZL ) digitalWrite(A1, HIGH); else digitalWrite(A1, LOW);
