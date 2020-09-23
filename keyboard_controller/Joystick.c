@@ -144,6 +144,7 @@ int report_count = 0;
 int inUpB = 0;
 int acBair = 0;
 int holdingB = 0;
+int holdingZR = 0;
 
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
@@ -315,12 +316,22 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
                     ReportData->Button |= SWITCH_X | SWITCH_R;
                 }
                 ReportData->Button &= ~SWITCH_ZR;
-            }
-
-            if (tiltLeftStick && (PINC & SWITCH_ZR)) {
+            } else if (tiltLeftStick && (PINC & SWITCH_ZR)) {
                 // if you tilt + ZR, capture screenshot instead of pressing ZR
                 ReportData->Button |= SWITCH_CAPTURE;
                 ReportData->Button &= ~SWITCH_ZR;
+            } else if (PINC & SWITCH_ZR) {
+                holdingZR++;
+                ReportData->Button &= ~SWITCH_ZR;
+                if (holdingZR < 4) {
+                    ReportData->Button |= SWITCH_X;
+                } else if (holdingZR < 8) {
+                    // release X, do nothing
+                } else {
+                    ReportData->Button |= SWITCH_X | SWITCH_A;
+                }
+            } else {
+                holdingZR = 0;
             }
 
 			return;
